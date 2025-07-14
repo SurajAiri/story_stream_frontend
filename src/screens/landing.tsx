@@ -30,6 +30,12 @@ import {
   // TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  trackWaitlistClick,
+  trackVideoPlay,
+  trackSectionView,
+  trackExternalLink,
+} from "@/lib/analytics";
 
 // Video data type
 interface VideoData {
@@ -174,6 +180,8 @@ const VideoCarousel = ({
       if (playingVideo === video.title) {
         setPlayingVideo(null);
       } else {
+        // Track video play event
+        trackVideoPlay(video.title, orientation);
         setPlayingVideo(video.title);
         // Add a small delay to ensure the video element is created
         setTimeout(() => {
@@ -683,7 +691,12 @@ const LandingPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const scrollToSection = (ref: React.RefObject<HTMLElement | null>) => {
+  const scrollToSection = (
+    ref: React.RefObject<HTMLElement | null>,
+    sectionName: string
+  ) => {
+    // Track section view analytics
+    trackSectionView(sectionName);
     ref.current?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -736,19 +749,19 @@ const LandingPage = () => {
             </div>
             <div className="hidden md:flex space-x-8">
               <button
-                onClick={() => scrollToSection(featuresRef)}
+                onClick={() => scrollToSection(featuresRef, "features")}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Features
               </button>
               <button
-                onClick={() => scrollToSection(videosRef)}
+                onClick={() => scrollToSection(videosRef, "demo")}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Demo
               </button>
               <button
-                onClick={() => scrollToSection(waitlistRef)}
+                onClick={() => scrollToSection(waitlistRef, "waitlist")}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Waitlist
@@ -812,7 +825,11 @@ const LandingPage = () => {
               >
                 <Button
                   size="lg"
-                  onClick={() => scrollToSection(waitlistRef)}
+                  onClick={() => {
+                    // Track analytics event before opening the form
+                    trackWaitlistClick("hero_section");
+                    scrollToSection(waitlistRef, "waitlist");
+                  }}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-10 py-4 text-lg font-semibold shadow-2xl shadow-purple-500/25"
                 >
                   Join Waitlist
@@ -826,7 +843,7 @@ const LandingPage = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => scrollToSection(videosRef)}
+                  onClick={() => scrollToSection(videosRef, "demo")}
                   className="border-slate-600 text-slate-300 hover:bg-slate-800 px-10 py-4 text-lg bg-transparent backdrop-blur-sm"
                 >
                   <Play className="mr-2 h-6 w-6" />
@@ -1126,12 +1143,18 @@ const LandingPage = () => {
                   <Button
                     type="button"
                     size="lg"
-                    onClick={() =>
+                    onClick={() => {
+                      // Track analytics event before opening the form
+                      trackWaitlistClick("waitlist_section");
+                      trackExternalLink(
+                        "https://forms.gle/jcPxTAYKjVnUMwoq5",
+                        "Join Waitlist - Get Early Access"
+                      );
                       window.open(
                         "https://forms.gle/jcPxTAYKjVnUMwoq5",
                         "_blank"
-                      )
-                    }
+                      );
+                    }}
                     className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-16 text-xl font-semibold shadow-2xl shadow-purple-500/25"
                   >
                     <Users className="mr-3 h-6 w-6" />
