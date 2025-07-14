@@ -17,17 +17,17 @@ import {
   Clock,
   Monitor,
   Smartphone,
-  CheckCircle,
+  // CheckCircle,
   ArrowRight,
-  // Users,
+  Users,
   Palette,
   Bot,
   ChevronLeft,
   ChevronRight,
   Download,
   X,
-  Star,
-  TrendingUp,
+  // Star,
+  // TrendingUp,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -1113,41 +1113,31 @@ const LandingPage = () => {
             </p>
 
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
             >
-              <Card className="bg-green-900/20 border-green-500/30 p-10 backdrop-blur-sm">
-                <div className="text-center">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.5, delay: 0.2 }}
+              <Card className="bg-slate-800/50 border-slate-700 p-10 backdrop-blur-sm">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button
+                    type="button"
+                    size="lg"
+                    onClick={() =>
+                      window.open(
+                        "https://forms.gle/jcPxTAYKjVnUMwoq5",
+                        "_blank"
+                      )
+                    }
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-16 text-xl font-semibold shadow-2xl shadow-purple-500/25"
                   >
-                    <CheckCircle className="h-20 w-20 text-green-400 mx-auto mb-6" />
-                  </motion.div>
-                  <h3 className="text-3xl font-semibold text-white mb-4">
-                    You're on the list!
-                  </h3>
-                  <p className="text-green-300 text-xl">
-                    We'll notify you as soon as Story Stream Automation is
-                    ready.
-                  </p>
-                  <div className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-400">
-                    <div className="flex items-center space-x-2">
-                      <Star className="w-4 h-4 text-yellow-500" />
-                      <span>Early access</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <TrendingUp className="w-4 h-4 text-green-500" />
-                      <span>Special pricing</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-4 h-4 text-blue-500" />
-                      <span>No spam</span>
-                    </div>
-                  </div>
-                </div>
+                    <Users className="mr-3 h-6 w-6" />
+                    Join Waitlist - Get Early Access
+                  </Button>
+                </motion.div>
               </Card>
             </motion.div>
           </motion.div>
