@@ -1,31 +1,38 @@
-import React, { useState, useEffect, useRef } from "react";
-import {
-  Play,
-  Zap,
-  Video,
-  Image,
-  Mic,
-  Type,
-  ArrowRight,
-  Sparkles,
-  Clock,
-  Settings,
-  CheckCircle,
-  Star,
-  TrendingUp,
-  ChevronLeft,
-  ChevronRight,
-  X,
-  Monitor,
-  Smartphone,
-  Download,
-  Share2,
-} from "lucide-react";
+"use client";
+
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Play,
+  Zap,
+  Sparkles,
+  Video,
+  Mic,
+  ImageIcon,
+  Clock,
+  Monitor,
+  Smartphone,
+  CheckCircle,
+  ArrowRight,
+  Users,
+  Palette,
+  Bot,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  X,
+  Star,
+  TrendingUp,
+} from "lucide-react";
+import { motion } from "framer-motion";
 
-interface Video {
+// Video data type
+interface VideoData {
   link: string;
   title: string;
   description: string;
@@ -33,98 +40,636 @@ interface Video {
   dimension: string;
   thumbnail: string;
   duration: string;
-  orientation: "vertical" | "horizontal";
+  orientation: string;
 }
 
-const LandingPage: React.FC = () => {
+// Video data with enhanced structure - using videos with audio
+const verticalVideos: VideoData[] = [
+  {
+    link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752492585/audio_final_video_720x1280_zdjw87.mp4",
+    title: "A dragon's Tale",
+    description: "How a dragon saved her throne.",
+    resolution: "720p",
+    dimension: "720x1280",
+    thumbnail:
+      "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752492585/audio_final_video_720x1280_zdjw87.jpg",
+    duration: "00:41",
+    orientation: "vertical",
+  },
+  {
+    link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752495703/orate-me-720x1280_eheshv.mp4",
+    title: "Improve speaking skills",
+    description: "Tips and tricks to enhance your speaking abilities.",
+    resolution: "720p",
+    dimension: "720x1280",
+    thumbnail:
+      "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752495703/orate-me-720x1280_eheshv.jpg",
+    duration: "00:38",
+    orientation: "vertical",
+  },
+];
+
+const horizontalVideos: VideoData[] = [
+  {
+    link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752491953/audio_final_video_1280x720_bo1wna.mp4",
+    title: "A dragon's Tale",
+    description: "How a dragon saved her throne.",
+    resolution: "720p",
+    dimension: "1280x720",
+    thumbnail:
+      "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752491953/audio_final_video_1280x720_bo1wna.jpg",
+    duration: "00:41",
+    orientation: "horizontal",
+  },
+  {
+    link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752495668/orateme_1280x720_kskkik.mp4",
+    title: "Improve speaking skills",
+    description: "Tips and tricks to enhance your speaking abilities.",
+    resolution: "720p",
+    dimension: "1280x720",
+    thumbnail:
+      "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752495668/orateme_1280x720_kskkik.jpg",
+    duration: "00:38",
+    orientation: "horizontal",
+  },
+];
+
+// Enhanced Interactive Video Carousel Component
+const VideoCarousel = ({
+  videos,
+  orientation,
+}: {
+  videos: VideoData[];
+  orientation: string;
+}) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [selectedVideo, setSelectedVideo] = useState<VideoData | null>(null);
+  const [playingVideo, setPlayingVideo] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const nextSlide = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => (prev + 1) % videos.length);
+    setPlayingVideo(null); // Stop playing when switching
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
+
+  const prevSlide = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
+    setPlayingVideo(null); // Stop playing when switching
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
+
+  const switchToVideo = (videoIndex: number) => {
+    if (isTransitioning || videoIndex === currentIndex) return;
+    setIsTransitioning(true);
+    setCurrentIndex(videoIndex);
+    setPlayingVideo(null);
+    setTimeout(() => setIsTransitioning(false), 500);
+  };
+
+  const nextVideoInModal = () => {
+    if (!selectedVideo) return;
+    const currentVideoIndex = videos.findIndex(
+      (v) => v.title === selectedVideo.title
+    );
+    const nextIndex = (currentVideoIndex + 1) % videos.length;
+    setSelectedVideo(videos[nextIndex]);
+  };
+
+  const prevVideoInModal = () => {
+    if (!selectedVideo) return;
+    const currentVideoIndex = videos.findIndex(
+      (v) => v.title === selectedVideo.title
+    );
+    const prevIndex = (currentVideoIndex - 1 + videos.length) % videos.length;
+    setSelectedVideo(videos[prevIndex]);
+  };
+
+  const getVisibleVideos = () => {
+    const result = [];
+    for (let i = 0; i < 3; i++) {
+      const index = (currentIndex - 1 + i + videos.length) % videos.length;
+      result.push({ ...videos[index], displayIndex: i });
+    }
+    return result;
+  };
+
+  const handleVideoClick = (video: VideoData, isCenter: boolean) => {
+    if (isCenter) {
+      // If center video, toggle play/pause
+      if (playingVideo === video.title) {
+        setPlayingVideo(null);
+      } else {
+        setPlayingVideo(video.title);
+        // Add a small delay to ensure the video element is created
+        setTimeout(() => {
+          const videoElement = document.querySelector(
+            `video[src="${video.link}"]`
+          ) as HTMLVideoElement;
+          if (videoElement) {
+            videoElement.muted = false;
+            videoElement.volume = 1.0;
+            videoElement.play().catch(() => {
+              // If audio autoplay fails, try muted first then unmute
+              videoElement.muted = true;
+              videoElement.play().then(() => {
+                videoElement.muted = false;
+              });
+            });
+          }
+        }, 100);
+      }
+    } else {
+      // If side video, make it center
+      const videoIndex = videos.findIndex((v) => v.title === video.title);
+      switchToVideo(videoIndex);
+    }
+  };
+
+  const handleMouseEnter = (video: VideoData) => {
+    // Clear any existing timeout
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+    }
+
+    // Set a delay before switching to avoid rapid transitions
+    hoverTimeoutRef.current = setTimeout(() => {
+      const videoIndex = videos.findIndex((v) => v.title === video.title);
+      if (videoIndex !== currentIndex && !isTransitioning) {
+        switchToVideo(videoIndex);
+      }
+    }, 200); // 200ms delay
+  };
+
+  const handleMouseLeave = () => {
+    // Clear timeout when mouse leaves
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  };
+
+  const handlePlayIconClick = (video: VideoData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedVideo(video);
+    // Ensure modal video will have audio when opened
+    setTimeout(() => {
+      const modalVideo = document.querySelector(
+        ".modal-video"
+      ) as HTMLVideoElement;
+      if (modalVideo) {
+        modalVideo.muted = false;
+        modalVideo.volume = 1.0;
+      }
+    }, 100);
+  };
+
+  return (
+    <div className="relative">
+      <div className="flex items-center justify-between mb-8">
+        <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+          {orientation === "vertical" ? (
+            <>
+              <Smartphone className="h-6 w-6 text-purple-400" />
+              Instagram Reels & TikTok
+            </>
+          ) : (
+            <>
+              <Monitor className="h-6 w-6 text-purple-400" />
+              YouTube & Landscape
+            </>
+          )}
+        </h3>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={prevSlide}
+            className="border-slate-600 text-slate-300 hover:bg-slate-800 bg-transparent"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={nextSlide}
+            className="border-slate-600 text-slate-300 hover:bg-slate-800 bg-transparent"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="relative overflow-hidden">
+        <div className="flex justify-center items-center gap-4 md:gap-6">
+          {getVisibleVideos().map((video, index) => {
+            const isCenter = index === 1;
+            const isPlaying = playingVideo === video.title && isCenter;
+
+            return (
+              <motion.div
+                key={`${video.title}-${currentIndex}-${index}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{
+                  opacity: isTransitioning ? 0.3 : isCenter ? 1 : 0.6,
+                  scale: isTransitioning ? 0.7 : isCenter ? 1 : 0.85,
+                  y: isTransitioning ? 40 : isCenter ? 0 : 20,
+                }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+                className={`relative ${
+                  isCenter ? "z-10" : "z-0"
+                } cursor-pointer`}
+                style={{
+                  width:
+                    orientation === "vertical"
+                      ? isCenter
+                        ? "min(350px, 90vw)"
+                        : "min(280px, 25vw)"
+                      : isCenter
+                      ? "min(500px, 90vw)"
+                      : "min(400px, 30vw)",
+                }}
+                onMouseEnter={() => {
+                  if (!isCenter && !isTransitioning) {
+                    handleMouseEnter(video);
+                  }
+                }}
+                onMouseLeave={handleMouseLeave}
+                onClick={() => handleVideoClick(video, isCenter)}
+              >
+                <Card
+                  className={`bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-all duration-300 overflow-hidden group ${
+                    isCenter ? "ring-2 ring-purple-500/50" : ""
+                  }`}
+                >
+                  <div
+                    className="relative bg-slate-900 overflow-hidden"
+                    style={{
+                      height:
+                        orientation === "vertical"
+                          ? isCenter
+                            ? "min(500px, 80vh)"
+                            : "min(400px, 60vh)"
+                          : isCenter
+                          ? "min(280px, 50vh)"
+                          : "min(225px, 40vh)",
+                      aspectRatio: orientation === "vertical" ? "9/16" : "16/9",
+                    }}
+                  >
+                    {isPlaying ? (
+                      <video
+                        src={video.link}
+                        autoPlay
+                        muted={false}
+                        loop
+                        controls
+                        className="w-full h-full object-cover"
+                        onError={() => setPlayingVideo(null)}
+                        onLoadedData={(e) => {
+                          const video = e.target as HTMLVideoElement;
+                          video.volume = 1.0;
+                          video.muted = false;
+
+                          console.log(
+                            "Video loaded with volume:",
+                            video.volume,
+                            "muted:",
+                            video.muted
+                          );
+                          console.log("Video src:", video.src);
+
+                          // Try to play with audio, fallback to muted if needed
+                          video
+                            .play()
+                            .then(() => {
+                              console.log(
+                                "Video playing successfully with audio"
+                              );
+                            })
+                            .catch((error) => {
+                              console.log(
+                                "Autoplay with audio failed:",
+                                error.message
+                              );
+                              video.muted = true;
+                              video.play().then(() => {
+                                console.log(
+                                  "Playing muted, will try to unmute in 1 second"
+                                );
+                                // After starting playback, try to unmute
+                                setTimeout(() => {
+                                  video.muted = false;
+                                  video.volume = 1.0;
+                                  console.log("Attempted to unmute video");
+                                }, 1000);
+                              });
+                            });
+                        }}
+                        onLoadedMetadata={(e) => {
+                          const video = e.target as HTMLVideoElement;
+                          console.log(
+                            "Video metadata loaded - duration:",
+                            video.duration
+                          );
+                        }}
+                        onVolumeChange={(e) => {
+                          const video = e.target as HTMLVideoElement;
+                          console.log(
+                            "Volume changed:",
+                            video.volume,
+                            "muted:",
+                            video.muted
+                          );
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={video.thumbnail || "/placeholder.svg"}
+                        alt={video.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+
+                    {!isPlaying && (
+                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
+                        {isCenter && (
+                          <motion.div
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="bg-white/20 backdrop-blur-sm rounded-full p-4 group-hover:bg-white/30 transition-all duration-300"
+                            onClick={(e) => handlePlayIconClick(video, e)}
+                          >
+                            <Play className="h-8 w-8 text-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                    )}
+
+                    {isPlaying && isCenter && (
+                      <div className="absolute top-4 right-4">
+                        <motion.div
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          className="bg-black/50 backdrop-blur-sm rounded-full p-2 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePlayIconClick(video, e);
+                          }}
+                        >
+                          <Play className="h-4 w-4 text-white" />
+                        </motion.div>
+                      </div>
+                    )}
+
+                    <div className="absolute top-4 left-4 right-4 flex justify-between">
+                      <Badge className="bg-purple-500/80 text-white backdrop-blur-sm">
+                        {video.resolution}
+                      </Badge>
+                      <Badge className="bg-black/70 text-white backdrop-blur-sm">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {video.duration}
+                      </Badge>
+                    </div>
+
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <h4 className="text-white font-semibold text-lg mb-1 truncate">
+                        {video.title}
+                      </h4>
+                      <p className="text-slate-300 text-sm truncate">
+                        {video.description}
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Dots Indicator */}
+      <div className="flex justify-center gap-2 mt-8">
+        {videos.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => switchToVideo(index)}
+            disabled={isTransitioning}
+            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+              index === currentIndex ? "bg-purple-400 w-8" : "bg-slate-600"
+            } ${isTransitioning ? "opacity-50 cursor-not-allowed" : ""}`}
+          />
+        ))}
+      </div>
+
+      {/* Enhanced Video Modal */}
+      {selectedVideo && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedVideo(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+            className="bg-slate-900 rounded-xl p-6 w-full max-w-5xl max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center gap-4">
+                <div>
+                  <h3 className="text-2xl font-semibold text-white">
+                    {selectedVideo.title}
+                  </h3>
+                  <p className="text-slate-400">{selectedVideo.description}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={prevVideoInModal}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={nextVideoInModal}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedVideo(null)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col">
+              <div className="relative flex-1 bg-black rounded-lg overflow-hidden">
+                <video
+                  key={selectedVideo.link} // This ensures video reloads when video changes
+                  src={selectedVideo.link}
+                  controls
+                  autoPlay
+                  muted={false}
+                  className="w-full h-full object-contain modal-video"
+                  style={{ maxHeight: "70vh" }}
+                  onLoadedData={(e) => {
+                    const video = e.target as HTMLVideoElement;
+                    video.volume = 1.0;
+                    video.muted = false;
+                    console.log(
+                      "Modal video loaded with volume:",
+                      video.volume,
+                      "muted:",
+                      video.muted
+                    );
+                  }}
+                  onPlay={(e) => {
+                    const video = e.target as HTMLVideoElement;
+                    video.muted = false;
+                    video.volume = 1.0;
+                    console.log(
+                      "Modal video playing with volume:",
+                      video.volume,
+                      "muted:",
+                      video.muted
+                    );
+                  }}
+                  onVolumeChange={(e) => {
+                    const video = e.target as HTMLVideoElement;
+                    console.log(
+                      "Modal video volume changed:",
+                      video.volume,
+                      "muted:",
+                      video.muted
+                    );
+                  }}
+                />
+              </div>
+              <div className="flex justify-between items-center mt-4">
+                <div className="flex gap-4 text-sm text-slate-400">
+                  <span>Resolution: {selectedVideo.dimension}</span>
+                  <span>Duration: {selectedVideo.duration}</span>
+                  <span>Format: {selectedVideo.orientation}</span>
+                </div>
+                <div className="text-sm text-slate-500">
+                  {videos.findIndex((v) => v.title === selectedVideo.title) + 1}{" "}
+                  of {videos.length}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </div>
+  );
+};
+
+// Enhanced Features Data
+const features = [
+  {
+    icon: <Zap className="h-6 w-6" />,
+    title: "Lightning Fast Rendering",
+    description:
+      "Generate professional videos in minutes, not hours. Our optimized pipeline delivers results 10x faster than traditional methods.",
+    highlight: "10x Faster",
+  },
+  {
+    icon: <Monitor className="h-6 w-6" />,
+    title: "All Resolutions Supported",
+    description:
+      "From 480p to 4K, landscape to portrait. Perfect for Instagram Reels, YouTube Shorts, TikTok, and traditional platforms.",
+    highlight: "480p - 4K",
+  },
+  {
+    icon: <Bot className="h-6 w-6" />,
+    title: "Complete AI Automation",
+    description:
+      "From story input to final video - AI handles script validation, voice generation, image creation, and video assembly.",
+    highlight: "100% Automated",
+  },
+  {
+    icon: <Palette className="h-6 w-6" />,
+    title: "15+ Text Animations",
+    description:
+      "Typewriter, fade, bounce, glitch, neon flicker - professional animations that make your content stand out.",
+    highlight: "15+ Effects",
+  },
+  {
+    icon: <Mic className="h-6 w-6" />,
+    title: "Natural Voice Generation",
+    description:
+      "AI-powered text-to-speech with natural intonation and perfect lip-sync avatar integration.",
+    highlight: "Human-like",
+  },
+  {
+    icon: <ImageIcon className="h-6 w-6" />,
+    title: "Smart Visual Creation",
+    description:
+      "Context-aware image generation that perfectly matches your story narrative and maintains visual consistency.",
+    highlight: "AI-Generated",
+  },
+];
+
+// Enhanced Stats Data
+const stats = [
+  {
+    number: "10x",
+    label: "Faster Rendering",
+    icon: <Zap className="h-5 w-5" />,
+  },
+  {
+    number: "15+",
+    label: "Animation Types",
+    icon: <Sparkles className="h-5 w-5" />,
+  },
+  {
+    number: "4K",
+    label: "Max Resolution",
+    icon: <Monitor className="h-5 w-5" />,
+  },
+  { number: "100%", label: "Automated", icon: <Bot className="h-5 w-5" /> },
+];
+
+const LandingPage = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [company, setCompany] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [animatedText, setAnimatedText] = useState("");
-  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [horizontalScrollIndex, setHorizontalScrollIndex] = useState(0);
-  const [verticalScrollIndex, setVerticalScrollIndex] = useState(0);
-  const modalVideoRef = useRef<HTMLVideoElement>(null);
 
-  const videoPreviewData: Video[] = [
-    {
-      link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477166/dragon_vert_fq5fx5.mp4",
-      title: "Startup Success Story",
-      description: "A founder's journey from idea to IPO",
-      resolution: "720p",
-      dimension: "720x1280",
-      thumbnail:
-        "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477166/dragon_vert_fq5fx5.jpg",
-      duration: "2:15",
-      orientation: "vertical",
-    },
-    {
-      link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477166/dragon_vert_fq5fx5.mp4",
-      title: "Tech Innovation Tale",
-      description: "How AI changed everything",
-      resolution: "1080p",
-      dimension: "1080x1920",
-      thumbnail:
-        "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477166/dragon_vert_fq5fx5.jpg",
-      duration: "1:45",
-      orientation: "vertical",
-    },
-    {
-      link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477166/dragon_vert_fq5fx5.mp4",
-      title: "Entrepreneur's Challenge",
-      description: "Overcoming the impossible",
-      resolution: "480p",
-      dimension: "480x854",
-      thumbnail:
-        "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477166/dragon_vert_fq5fx5.jpg",
-      duration: "3:20",
-      orientation: "vertical",
-    },
-    {
-      link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477167/dragon_horiz_lr9qc2.mp4",
-      title: "Business Transformation",
-      description: "Digital revolution case study",
-      resolution: "1080p",
-      dimension: "1920x1080",
-      thumbnail:
-        "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477167/dragon_horiz_lr9qc2.jpg",
-      duration: "2:30",
-      orientation: "horizontal",
-    },
-    {
-      link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477167/dragon_horiz_lr9qc2.mp4",
-      title: "Market Disruption",
-      description: "How one idea changed an industry",
-      resolution: "720p",
-      dimension: "1280x720",
-      thumbnail:
-        "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477167/dragon_horiz_lr9qc2.jpg",
-      duration: "1:55",
-      orientation: "horizontal",
-    },
-    {
-      link: "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477167/dragon_horiz_lr9qc2.mp4",
-      title: "Leadership Journey",
-      description: "From employee to CEO",
-      resolution: "480p",
-      dimension: "854x480",
-      thumbnail:
-        "https://res.cloudinary.com/dlzdj6k6u/video/upload/v1752477167/dragon_horiz_lr9qc2.jpg",
-      duration: "4:10",
-      orientation: "horizontal",
-    },
-  ];
+  // Refs for smooth scrolling
+  const featuresRef = useRef<HTMLElement>(null);
+  const videosRef = useRef<HTMLElement>(null);
+  const waitlistRef = useRef<HTMLElement>(null);
 
-  const fullText = "Transform Stories into Stunning Videos";
-
-  // Separate videos by orientation
-  const horizontalVideos = videoPreviewData.filter(
-    (video) => video.orientation === "horizontal"
-  );
-  const verticalVideos = videoPreviewData.filter(
-    (video) => video.orientation === "vertical"
-  );
+  const fullText = "Transform Stories into Viral Videos";
 
   useEffect(() => {
     let index = 0;
@@ -138,715 +683,574 @@ const LandingPage: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const handleVideoSelect = (video: Video) => {
-    setSelectedVideo(video);
-    setIsModalOpen(true);
+  const scrollToSection = (ref: React.RefObject<HTMLElement | null>) => {
+    ref.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    if (modalVideoRef.current) {
-      modalVideoRef.current.pause();
-    }
-  };
-
-  const scrollCarousel = (
-    direction: "left" | "right",
-    orientation: "horizontal" | "vertical"
-  ) => {
-    const videos =
-      orientation === "horizontal" ? horizontalVideos : verticalVideos;
-    const currentIndex =
-      orientation === "horizontal"
-        ? horizontalScrollIndex
-        : verticalScrollIndex;
-    const setIndex =
-      orientation === "horizontal"
-        ? setHorizontalScrollIndex
-        : setVerticalScrollIndex;
-
-    if (direction === "left") {
-      setIndex(Math.max(0, currentIndex - 1));
-    } else {
-      setIndex(Math.min(videos.length - 3, currentIndex + 1));
-    }
-  };
-
-  const handleSubmit = (e: React.MouseEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && name) {
-      setIsSubmitted(true);
-      console.log("Submitted:", { name, email });
-    }
+    console.log({ email, name, company });
+    setIsSubmitted(true);
   };
-
-  const features = [
-    {
-      icon: <Zap className="w-8 h-8 text-yellow-500" />,
-      title: "Lightning Fast Rendering",
-      description:
-        "Generate professional videos in minutes, not hours. Our optimized pipeline delivers speed without compromising quality.",
-      highlight: "90% faster than traditional tools",
-    },
-    {
-      icon: <Video className="w-8 h-8 text-blue-500" />,
-      title: "Multiple Resolutions",
-      description:
-        "Support for 1080p, 720p, 480p in both landscape and vertical formats. Perfect for all social media platforms.",
-      highlight: "All formats supported",
-    },
-    {
-      icon: <Type className="w-8 h-8 text-purple-500" />,
-      title: "15+ Text Animations",
-      description:
-        "From typewriter effects to glitch animations. Create engaging content with professional-grade text effects.",
-      highlight: "Professional animations",
-    },
-    {
-      icon: <Mic className="w-8 h-8 text-green-500" />,
-      title: "AI Voice Generation",
-      description:
-        "Natural speech synthesis with precise timestamp control. Multiple voice options for different storytelling styles.",
-      highlight: "Natural AI voices",
-    },
-    {
-      icon: <Image className="w-8 h-8 text-pink-500" />,
-      title: "Smart Image Generation",
-      description:
-        "Context-aware image creation that matches your story's mood and theme. Every frame tells your story perfectly.",
-      highlight: "Context-aware visuals",
-    },
-    {
-      icon: <Settings className="w-8 h-8 text-indigo-500" />,
-      title: "Complete Automation",
-      description:
-        "From script to final video with zero manual intervention. Our pipeline handles every step of video production.",
-      highlight: "Full automation",
-    },
-  ];
-
-  const stats = [
-    { number: "90%", label: "Faster Rendering" },
-    { number: "15+", label: "Animation Types" },
-    { number: "4", label: "Resolution Options" },
-    { number: "100%", label: "Automated Pipeline" },
-  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 text-white overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse delay-2000"></div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="relative z-10 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              Story Stream
-            </span>
-          </div>
-          <div className="hidden md:flex space-x-8">
-            <a
-              href="#features"
-              className="text-gray-300 hover:text-white transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#demo"
-              className="text-gray-300 hover:text-white transition-colors"
-            >
-              Demo
-            </a>
-            <a
-              href="#pricing"
-              className="text-gray-300 hover:text-white transition-colors"
-            >
-              Pricing
-            </a>
-          </div>
-        </div>
-      </nav>
-
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
       {/* Hero Section */}
-      <div className="relative z-10 px-6 py-20">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="mb-8">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
+      <section className="relative overflow-hidden min-h-screen flex items-center">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10" />
+
+        {/* Animated Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-purple-400/20 rounded-full"
+              animate={{
+                x: [0, 100, 0],
+                y: [0, -100, 0],
+                opacity: [0, 1, 0],
+              }}
+              transition={{
+                duration: 3 + i * 0.5,
+                repeat: Number.POSITIVE_INFINITY,
+                delay: i * 0.2,
+              }}
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Navigation */}
+        <nav className="absolute top-0 left-0 right-0 z-20 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                Story Stream
+              </span>
+            </div>
+            <div className="hidden md:flex space-x-8">
+              <button
+                onClick={() => scrollToSection(featuresRef)}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Features
+              </button>
+              <button
+                onClick={() => scrollToSection(videosRef)}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Demo
+              </button>
+              <button
+                onClick={() => scrollToSection(waitlistRef)}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                Waitlist
+              </button>
+            </div>
+          </div>
+        </nav>
+
+        <div className="container mx-auto px-4 py-20 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center max-w-5xl mx-auto"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <Badge className="mb-6 bg-purple-500/20 text-purple-300 border-purple-500/30 text-lg px-6 py-2">
+                <Sparkles className="h-5 w-5 mr-2" />
+                AI-Powered Video Automation Platform
+              </Badge>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="text-6xl md:text-8xl font-bold text-white mb-8 leading-tight"
+            >
               <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
                 {animatedText}
               </span>
               <span className="animate-pulse">|</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-              AI-powered video creation platform that transforms text-based
-              stories into
-              <span className="text-purple-400 font-semibold">
-                {" "}
-                polished video content
-              </span>{" "}
-              in minutes
-            </p>
-          </div>
+            </motion.h1>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="text-center transform hover:scale-105 transition-transform duration-300"
-              >
-                <div className="text-3xl md:text-4xl font-bold text-purple-400 mb-2">
-                  {stat.number}
-                </div>
-                <div className="text-sm text-gray-400">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* CTA Button */}
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button
-              onClick={() =>
-                document
-                  .getElementById("waitlist")
-                  ?.scrollIntoView({ behavior: "smooth" })
-              }
-              className="group bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2"
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+              className="text-2xl text-slate-300 mb-12 max-w-3xl mx-auto leading-relaxed"
             >
-              <span>Join Waitlist</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Button>
-            <Button
-              variant="ghost"
-              className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
+              The first AI platform that automatically converts startup stories
+              into polished Instagram Reels.{" "}
+              <span className="text-purple-300 font-semibold">
+                From script to final video in minutes, not hours.
+              </span>
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
             >
-              <Play className="w-5 h-5" />
-              <span>Watch Demo</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Demo Video Section */}
-      <div
-        id="demo"
-        className="relative z-10 px-6 py-20 bg-black/20 backdrop-blur-sm"
-      >
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Experience the Magic</h2>
-            <p className="text-xl text-gray-300">
-              Discover how your stories come to life with stunning visuals
-            </p>
-          </div>
-
-          {/* Landscape Videos Carousel */}
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <Monitor className="w-6 h-6 text-blue-400" />
-                <h3 className="text-2xl font-bold">Landscape Videos</h3>
-                <span className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-                  Perfect for YouTube, presentations
-                </span>
-              </div>
-              <div className="flex space-x-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollCarousel("left", "horizontal")}
-                  disabled={horizontalScrollIndex === 0}
-                  className="bg-gray-800/50 text-white hover:bg-gray-700/50 disabled:opacity-50"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollCarousel("right", "horizontal")}
-                  disabled={
-                    horizontalScrollIndex >= horizontalVideos.length - 3
-                  }
-                  className="bg-gray-800/50 text-white hover:bg-gray-700/50 disabled:opacity-50"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="relative overflow-hidden">
-              <div
-                className="flex space-x-6 transition-transform duration-500 ease-in-out"
-                style={{
-                  transform: `translateX(-${horizontalScrollIndex * 33.333}%)`,
-                }}
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {horizontalVideos.map((video, index) => (
-                  <div
-                    key={index}
-                    className="flex-none w-full md:w-1/2 lg:w-1/3"
-                  >
-                    <Card className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-purple-500/20 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer">
-                      <div className="relative aspect-video">
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-
-                        {/* Play Button */}
-                        <Button
-                          onClick={() => handleVideoSelect(video)}
-                          className="absolute inset-0 m-auto w-16 h-16 bg-purple-600/90 hover:bg-purple-500 text-white rounded-full border-2 border-white/20 shadow-lg transform group-hover:scale-110 transition-all duration-300"
-                        >
-                          <Play className="w-6 h-6 ml-1" />
-                        </Button>
-
-                        {/* Duration Badge */}
-                        <div className="absolute top-3 right-3 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                          {video.duration}
-                        </div>
-
-                        {/* Resolution Badge */}
-                        <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs px-2 py-1 rounded font-semibold">
-                          {video.resolution}
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        <h4 className="text-lg font-semibold text-white mb-2 line-clamp-1">
-                          {video.title}
-                        </h4>
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">
-                          {video.description}
-                        </p>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{video.dimension}</span>
-                          <span className="flex items-center space-x-1">
-                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                            <span>Ready</span>
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Vertical Videos Carousel */}
-          <div className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center space-x-3">
-                <Smartphone className="w-6 h-6 text-pink-400" />
-                <h3 className="text-2xl font-bold">Vertical Videos</h3>
-                <span className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">
-                  Perfect for Instagram, TikTok, Stories
-                </span>
-              </div>
-              <div className="flex space-x-2">
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollCarousel("left", "vertical")}
-                  disabled={verticalScrollIndex === 0}
-                  className="bg-gray-800/50 text-white hover:bg-gray-700/50 disabled:opacity-50"
+                  size="lg"
+                  onClick={() => scrollToSection(waitlistRef)}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-10 py-4 text-lg font-semibold shadow-2xl shadow-purple-500/25"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  Join Waitlist
+                  <ArrowRight className="ml-2 h-6 w-6" />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => scrollCarousel("right", "vertical")}
-                  disabled={verticalScrollIndex >= verticalVideos.length - 4}
-                  className="bg-gray-800/50 text-white hover:bg-gray-700/50 disabled:opacity-50"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="relative overflow-hidden">
-              <div
-                className="flex space-x-4 transition-transform duration-500 ease-in-out"
-                style={{
-                  transform: `translateX(-${verticalScrollIndex * 25}%)`,
-                }}
+              </motion.div>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                {verticalVideos.map((video, index) => (
-                  <div key={index} className="flex-none w-48 md:w-52">
-                    <Card className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 border border-pink-500/20 rounded-xl overflow-hidden hover:border-pink-500/50 transition-all duration-300 transform hover:scale-[1.02] cursor-pointer">
-                      <div className="relative aspect-[9/16]">
-                        <img
-                          src={video.thumbnail}
-                          alt={video.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => scrollToSection(videosRef)}
+                  className="border-slate-600 text-slate-300 hover:bg-slate-800 px-10 py-4 text-lg bg-transparent backdrop-blur-sm"
+                >
+                  <Play className="mr-2 h-6 w-6" />
+                  Watch Demo
+                </Button>
+              </motion.div>
+            </motion.div>
 
-                        {/* Play Button */}
-                        <Button
-                          onClick={() => handleVideoSelect(video)}
-                          className="absolute inset-0 m-auto w-12 h-12 bg-pink-600/90 hover:bg-pink-500 text-white rounded-full border-2 border-white/20 shadow-lg transform group-hover:scale-110 transition-all duration-300"
-                        >
-                          <Play className="w-4 h-4 ml-0.5" />
-                        </Button>
-
-                        {/* Duration Badge */}
-                        <div className="absolute top-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
-                          {video.duration}
-                        </div>
-
-                        {/* Resolution Badge */}
-                        <div className="absolute top-2 left-2 bg-gradient-to-r from-pink-600 to-purple-600 text-white text-xs px-2 py-1 rounded font-semibold">
-                          {video.resolution}
-                        </div>
-                      </div>
-
-                      <CardContent className="p-3">
-                        <h4 className="text-sm font-semibold text-white mb-1 line-clamp-1">
-                          {video.title}
-                        </h4>
-                        <p className="text-gray-400 text-xs mb-2 line-clamp-2">
-                          {video.description}
-                        </p>
-                        <div className="flex items-center justify-between text-xs text-gray-500">
-                          <span>{video.dimension}</span>
-                          <span className="flex items-center space-x-1">
-                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                            <span>Ready</span>
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
+            {/* Enhanced Stats */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
+            >
+              {stats.map((stat, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 1 + index * 0.1 }}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  className="text-center bg-slate-800/30 backdrop-blur-sm rounded-xl p-6 border border-slate-700/50"
+                >
+                  <div className="text-purple-400 mb-2 flex justify-center">
+                    {stat.icon}
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Format Support Banner */}
-          <div className="text-center">
-            <div className="inline-flex items-center space-x-8 bg-gradient-to-r from-purple-600/10 to-blue-600/10 backdrop-blur-sm rounded-xl px-8 py-4 border border-purple-500/20">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">1920x1080 HD</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">1280x720 HD</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">720x1280 Stories</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium">854x480 SD</span>
-              </div>
-            </div>
-          </div>
+                  <div className="text-4xl font-bold text-white mb-2">
+                    {stat.number}
+                  </div>
+                  <div className="text-slate-400 text-sm font-medium">
+                    {stat.label}
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
         </div>
-      </div>
-
-      {/* Video Modal */}
-      {isModalOpen && selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-6xl max-h-full bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-700">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  {selectedVideo.orientation === "horizontal" ? (
-                    <Monitor className="w-5 h-5 text-blue-400" />
-                  ) : (
-                    <Smartphone className="w-5 h-5 text-pink-400" />
-                  )}
-                  <h3 className="text-xl font-semibold text-white">
-                    {selectedVideo.title}
-                  </h3>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm px-3 py-1 rounded font-semibold">
-                    {selectedVideo.resolution}
-                  </span>
-                  <span className="text-gray-400 text-sm">
-                    {selectedVideo.dimension}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-400 hover:text-white"
-                >
-                  <Download className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-400 hover:text-white"
-                >
-                  <Share2 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={closeModal}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div className="flex flex-col lg:flex-row">
-              {/* Video Player */}
-              <div className="flex-1 bg-black flex items-center justify-center p-6">
-                <div
-                  className={`relative ${
-                    selectedVideo.orientation === "vertical"
-                      ? "w-80 aspect-[9/16]"
-                      : "w-full max-w-4xl aspect-video"
-                  } rounded-lg overflow-hidden shadow-2xl`}
-                >
-                  <video
-                    ref={modalVideoRef}
-                    src={selectedVideo.link}
-                    controls
-                    autoPlay
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              {/* Video Info Sidebar */}
-              <div className="w-full lg:w-80 p-6 bg-gray-800/50">
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="text-lg font-semibold text-white mb-2">
-                      {selectedVideo.title}
-                    </h4>
-                    <p className="text-gray-300 text-sm leading-relaxed">
-                      {selectedVideo.description}
-                    </p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Duration</span>
-                      <span className="text-white text-sm font-medium">
-                        {selectedVideo.duration}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Resolution</span>
-                      <span className="text-white text-sm font-medium">
-                        {selectedVideo.resolution}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Dimensions</span>
-                      <span className="text-white text-sm font-medium">
-                        {selectedVideo.dimension}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Format</span>
-                      <span className="text-white text-sm font-medium capitalize">
-                        {selectedVideo.orientation}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t border-gray-700">
-                    <div className="flex items-center space-x-2 text-green-400 text-sm">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>AI Generated • High Quality</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      </section>
 
       {/* Features Section */}
-      <div id="features" className="relative z-10 px-6 py-20">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Powerful Features</h2>
-            <p className="text-xl text-gray-300">
-              Everything you need to create professional videos
+      <section
+        ref={featuresRef}
+        className="py-24 bg-slate-900/50 relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5" />
+        <div className="container mx-auto px-4 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-8">
+              Why Choose Story Stream?
+            </h2>
+            <p className="text-2xl text-slate-300 max-w-3xl mx-auto">
+              Built for creators who demand{" "}
+              <span className="text-purple-300 font-semibold">
+                speed, quality, and automation
+              </span>
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card
+              <motion.div
                 key={index}
-                className="group bg-gradient-to-br from-gray-800/50 to-gray-900/50 border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-xl"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                whileHover={{ y: -10, scale: 1.02 }}
+                className="group"
               >
-                <CardContent className="p-8">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <div className="p-3 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg group-hover:from-purple-600/20 group-hover:to-blue-600/20 transition-all duration-300">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-white">
-                        {feature.title}
-                      </h3>
-                      <div className="text-sm text-purple-400 font-medium">
+                <Card className="bg-slate-800/50 border-slate-700 hover:bg-slate-800/70 transition-all duration-500 h-full relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <CardContent className="p-8 relative">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="text-purple-400 group-hover:text-purple-300 transition-colors duration-300 group-hover:scale-110 transform">
+                        {feature.icon}
+                      </div>
+                      <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/30">
                         {feature.highlight}
+                      </Badge>
+                    </div>
+                    <h3 className="text-2xl font-semibold text-white mb-4 group-hover:text-purple-100 transition-colors duration-300">
+                      {feature.title}
+                    </h3>
+                    <p className="text-slate-300 leading-relaxed text-lg">
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Video Preview Section */}
+      <section ref={videosRef} className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent" />
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-8">
+              See It In Action
+            </h2>
+            <p className="text-2xl text-slate-300 max-w-3xl mx-auto">
+              Real videos created with Story Stream Automation -{" "}
+              <span className="text-purple-300 font-semibold">
+                professional quality in minutes
+              </span>
+            </p>
+          </motion.div>
+
+          <Tabs defaultValue="vertical" className="w-full relative">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="flex justify-center mb-12 relative z-10"
+            >
+              <TabsList className="bg-slate-800/50 border border-slate-700 p-2 relative z-20">
+                <TabsTrigger
+                  value="vertical"
+                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white px-8 py-3 text-lg transition-all duration-300 cursor-pointer relative z-30"
+                >
+                  <Smartphone className="h-5 w-5 mr-2" />
+                  Vertical Videos
+                </TabsTrigger>
+                <TabsTrigger
+                  value="horizontal"
+                  className="data-[state=active]:bg-purple-600 data-[state=active]:text-white px-8 py-3 text-lg transition-all duration-300 cursor-pointer relative z-30"
+                >
+                  <Monitor className="h-5 w-5 mr-2" />
+                  Horizontal Videos
+                </TabsTrigger>
+              </TabsList>
+            </motion.div>
+
+            <TabsContent value="vertical" className="mt-0 relative">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <VideoCarousel
+                  key="vertical-carousel"
+                  videos={verticalVideos}
+                  orientation="vertical"
+                />
+              </motion.div>
+            </TabsContent>
+
+            <TabsContent value="horizontal" className="mt-0 relative">
+              <motion.div
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+              >
+                <VideoCarousel
+                  key="horizontal-carousel"
+                  videos={horizontalVideos}
+                  orientation="horizontal"
+                />
+              </motion.div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-24 bg-slate-900/50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5" />
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-20"
+          >
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-8">
+              How It Works
+            </h2>
+            <p className="text-2xl text-slate-300 max-w-3xl mx-auto">
+              From story to viral video in{" "}
+              <span className="text-purple-300 font-semibold">
+                4 simple steps
+              </span>
+            </p>
+          </motion.div>
+
+          <div className="max-w-5xl mx-auto">
+            <div className="space-y-12">
+              {[
+                {
+                  step: "01",
+                  title: "Input Your Story",
+                  description:
+                    "Simply paste your startup story or let our AI scrape content from Reddit and other sources.",
+                  icon: <Video className="h-8 w-8" />,
+                },
+                {
+                  step: "02",
+                  title: "AI Processing",
+                  description:
+                    "Our AI validates the script, generates natural voice narration, and creates contextual images.",
+                  icon: <Bot className="h-8 w-8" />,
+                },
+                {
+                  step: "03",
+                  title: "Video Assembly",
+                  description:
+                    "Advanced video editor assembles timeline with media, transitions, and synchronized subtitles.",
+                  icon: <Palette className="h-8 w-8" />,
+                },
+                {
+                  step: "04",
+                  title: "Export & Share",
+                  description:
+                    "Get your polished video in any resolution and format, ready for Instagram, TikTok, or YouTube.",
+                  icon: <Download className="h-8 w-8" />,
+                },
+              ].map((item, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: index * 0.2 }}
+                  viewport={{ once: true }}
+                  whileHover={{ x: 10 }}
+                  className="flex items-start gap-8 group"
+                >
+                  <div className="flex-shrink-0 w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl flex items-center justify-center text-white font-bold text-2xl group-hover:scale-110 transition-transform duration-300">
+                    {item.step}
+                  </div>
+                  <div className="flex-1 bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700/50 group-hover:bg-slate-800/50 transition-all duration-300">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="text-purple-400">{item.icon}</div>
+                      <h3 className="text-3xl font-semibold text-white">
+                        {item.title}
+                      </h3>
+                    </div>
+                    <p className="text-slate-300 leading-relaxed text-lg">
+                      {item.description}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Waitlist Section */}
+      <section ref={waitlistRef} className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10" />
+        <div className="container mx-auto px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="max-w-3xl mx-auto text-center"
+          >
+            <h2 className="text-5xl md:text-6xl font-bold text-white mb-8">
+              Join the Waitlist
+            </h2>
+            <p className="text-2xl text-slate-300 mb-12">
+              Be among the first to{" "}
+              <span className="text-purple-300 font-semibold">
+                transform your stories into viral videos
+              </span>
+            </p>
+
+            {!isSubmitted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <Card className="bg-slate-800/50 border-slate-700 p-10 backdrop-blur-sm">
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          type="text"
+                          placeholder="Your Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg"
+                        />
+                      </motion.div>
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          type="text"
+                          placeholder="Company (Optional)"
+                          value={company}
+                          onChange={(e) => setCompany(e.target.value)}
+                          className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg"
+                        />
+                      </motion.div>
+                    </div>
+                    <motion.div whileFocus={{ scale: 1.02 }}>
+                      <Input
+                        type="email"
+                        placeholder="Your Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg"
+                      />
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Button
+                        type="submit"
+                        size="lg"
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-16 text-xl font-semibold shadow-2xl shadow-purple-500/25"
+                      >
+                        <Users className="mr-3 h-6 w-6" />
+                        Join Waitlist - Get Early Access
+                      </Button>
+                    </motion.div>
+                  </form>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+              >
+                <Card className="bg-green-900/20 border-green-500/30 p-10 backdrop-blur-sm">
+                  <div className="text-center">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                    >
+                      <CheckCircle className="h-20 w-20 text-green-400 mx-auto mb-6" />
+                    </motion.div>
+                    <h3 className="text-3xl font-semibold text-white mb-4">
+                      You're on the list!
+                    </h3>
+                    <p className="text-green-300 text-xl">
+                      We'll notify you as soon as Story Stream Automation is
+                      ready.
+                    </p>
+                    <div className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-400">
+                      <div className="flex items-center space-x-2">
+                        <Star className="w-4 h-4 text-yellow-500" />
+                        <span>Early access</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <span>Special pricing</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-blue-500" />
+                        <span>No spam</span>
                       </div>
                     </div>
                   </div>
-                  <p className="text-gray-300 leading-relaxed">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              </motion.div>
+            )}
+          </motion.div>
         </div>
-      </div>
-
-      {/* Process Section */}
-      <div className="relative z-10 px-6 py-20 bg-black/20 backdrop-blur-sm">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-4">Simple Process</h2>
-            <p className="text-xl text-gray-300">
-              From story to video in just a few steps
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                step: "01",
-                title: "Input Your Story",
-                description:
-                  "Paste your text story or script. Our AI will validate and optimize it for video creation.",
-              },
-              {
-                step: "02",
-                title: "AI Processing",
-                description:
-                  "Our system generates audio, creates visuals, and prepares timeline automatically.",
-              },
-              {
-                step: "03",
-                title: "Export Video",
-                description:
-                  "Download your polished video in any format. Share directly to social media platforms.",
-              },
-            ].map((step, index) => (
-              <div key={index} className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center text-2xl font-bold mb-6 mx-auto">
-                  {step.step}
-                </div>
-                <h3 className="text-xl font-semibold mb-4">{step.title}</h3>
-                <p className="text-gray-300">{step.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Waitlist Section */}
-      <div id="waitlist" className="relative z-10 px-6 py-20">
-        <div className="max-w-4xl mx-auto text-center">
-          <Card className="bg-gradient-to-br from-purple-600/10 to-blue-600/10 border-purple-500/20 rounded-2xl p-12">
-            <CardContent>
-              <h2 className="text-4xl font-bold mb-4">Join the Waitlist</h2>
-              <p className="text-xl text-gray-300 mb-8">
-                Be among the first to experience the future of video creation
-              </p>
-
-              {!isSubmitted ? (
-                <div className="max-w-md mx-auto space-y-6">
-                  <Input
-                    type="text"
-                    placeholder="Your full name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-gray-800/50 border-gray-600 text-white placeholder-gray-400"
-                  />
-                  <Input
-                    type="email"
-                    placeholder="Your email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-gray-800/50 border-gray-600 text-white placeholder-gray-400"
-                  />
-                  <Button
-                    onClick={handleSubmit}
-                    className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold"
-                  >
-                    Join Waitlist
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center space-y-4">
-                  <CheckCircle className="w-16 h-16 text-green-500" />
-                  <h3 className="text-2xl font-semibold text-green-400">
-                    You're on the list!
-                  </h3>
-                  <p className="text-gray-300">
-                    We'll notify you when Story Stream Automation is ready.
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-400">
-                <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  <span>Early access</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                  <span>Special pricing</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-blue-500" />
-                  <span>No spam</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      </section>
 
       {/* Footer */}
-      <footer className="relative z-10 px-6 py-8 border-t border-gray-800">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
-          <div className="flex items-center space-x-2 mb-4 md:mb-0">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
+      <footer className="py-16 bg-slate-900 border-t border-slate-800">
+        <div className="container mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Video className="h-10 w-10 text-purple-400" />
+              <span className="text-3xl font-bold text-white">
+                Story Stream
+              </span>
             </div>
-            <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-              Story Stream Automation
-            </span>
-          </div>
-          <div className="text-gray-400 text-sm">
-            © 2025 Story Stream Automation. All rights reserved.
-          </div>
+            <p className="text-slate-400 mb-8 text-lg">
+              Transform your stories into viral videos with AI automation
+            </p>
+            <div className="flex justify-center gap-8 text-slate-400">
+              <a
+                href="#"
+                className="hover:text-white transition-colors text-lg"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                className="hover:text-white transition-colors text-lg"
+              >
+                Terms
+              </a>
+              <a
+                href="#"
+                className="hover:text-white transition-colors text-lg"
+              >
+                Contact
+              </a>
+            </div>
+          </motion.div>
         </div>
       </footer>
     </div>
