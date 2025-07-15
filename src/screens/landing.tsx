@@ -1,9 +1,7 @@
-"use client";
-
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,7 +15,7 @@ import {
   Clock,
   Monitor,
   Smartphone,
-  // CheckCircle,
+  CheckCircle,
   ArrowRight,
   Users,
   Palette,
@@ -26,16 +24,16 @@ import {
   ChevronRight,
   Download,
   X,
-  // Star,
-  // TrendingUp,
+  Star,
+  TrendingUp,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import {
-  trackWaitlistClick,
-  trackVideoPlay,
-  trackSectionView,
-  trackExternalLink,
-} from "@/lib/analytics";
+  addToWaitlist,
+  type WaitlistEntry,
+} from "@/services/apis/waitlist_api";
 
 // Video data type
 interface VideoData {
@@ -180,8 +178,6 @@ const VideoCarousel = ({
       if (playingVideo === video.title) {
         setPlayingVideo(null);
       } else {
-        // Track video play event
-        trackVideoPlay(video.title, orientation);
         setPlayingVideo(video.title);
         // Add a small delay to ensure the video element is created
         setTimeout(() => {
@@ -666,10 +662,12 @@ const stats = [
 ];
 
 const LandingPage = () => {
-  // const [email, setEmail] = useState("");
-  // const [name, setName] = useState("");
-  // const [company, setCompany] = useState("");
-  // const [isSubmitted, setIsSubmitted] = useState(false);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [company, setCompany] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const [animatedText, setAnimatedText] = useState("");
 
   // Refs for smooth scrolling
@@ -691,20 +689,38 @@ const LandingPage = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const scrollToSection = (
-    ref: React.RefObject<HTMLElement | null>,
-    sectionName: string
-  ) => {
-    // Track section view analytics
-    trackSectionView(sectionName);
+  const scrollToSection = (ref: React.RefObject<HTMLElement | null>) => {
     ref.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   console.log({ email, name, company });
-  //   setIsSubmitted(true);
-  // };
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const waitlistEntry: WaitlistEntry = {
+        name,
+        email,
+        ...(company && { extra: company }),
+      };
+
+      const response = await addToWaitlist(waitlistEntry);
+
+      if (response.success) {
+        setIsSubmitted(true);
+      } else {
+        setError(
+          response.message || "Failed to join waitlist. Please try again."
+        );
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+      console.error("Waitlist submission error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -749,19 +765,19 @@ const LandingPage = () => {
             </div>
             <div className="hidden md:flex space-x-8">
               <button
-                onClick={() => scrollToSection(featuresRef, "features")}
+                onClick={() => scrollToSection(featuresRef)}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Features
               </button>
               <button
-                onClick={() => scrollToSection(videosRef, "demo")}
+                onClick={() => scrollToSection(videosRef)}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Demo
               </button>
               <button
-                onClick={() => scrollToSection(waitlistRef, "waitlist")}
+                onClick={() => scrollToSection(waitlistRef)}
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Waitlist
@@ -825,11 +841,7 @@ const LandingPage = () => {
               >
                 <Button
                   size="lg"
-                  onClick={() => {
-                    // Track analytics event before opening the form
-                    trackWaitlistClick("hero_section");
-                    scrollToSection(waitlistRef, "waitlist");
-                  }}
+                  onClick={() => scrollToSection(waitlistRef)}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-10 py-4 text-lg font-semibold shadow-2xl shadow-purple-500/25"
                 >
                   Join Waitlist
@@ -843,7 +855,7 @@ const LandingPage = () => {
                 <Button
                   variant="outline"
                   size="lg"
-                  onClick={() => scrollToSection(videosRef, "demo")}
+                  onClick={() => scrollToSection(videosRef)}
                   className="border-slate-600 text-slate-300 hover:bg-slate-800 px-10 py-4 text-lg bg-transparent backdrop-blur-sm"
                 >
                   <Play className="mr-2 h-6 w-6" />
@@ -1129,40 +1141,126 @@ const LandingPage = () => {
               </span>
             </p>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              <Card className="bg-slate-800/50 border-slate-700 p-10 backdrop-blur-sm">
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Button
-                    type="button"
-                    size="lg"
-                    onClick={() => {
-                      // Track analytics event before opening the form
-                      trackWaitlistClick("waitlist_section");
-                      trackExternalLink(
-                        "https://forms.gle/jcPxTAYKjVnUMwoq5",
-                        "Join Waitlist - Get Early Access"
-                      );
-                      window.open(
-                        "https://forms.gle/jcPxTAYKjVnUMwoq5",
-                        "_blank"
-                      );
-                    }}
-                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-16 text-xl font-semibold shadow-2xl shadow-purple-500/25"
-                  >
-                    <Users className="mr-3 h-6 w-6" />
-                    Join Waitlist - Get Early Access
-                  </Button>
-                </motion.div>
-              </Card>
-            </motion.div>
+            {!isSubmitted ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.2 }}
+                viewport={{ once: true }}
+              >
+                <Card className="bg-slate-800/50 border-slate-700 p-10 backdrop-blur-sm">
+                  <form onSubmit={handleSubmit} className="space-y-8">
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 flex items-center gap-3"
+                      >
+                        <AlertCircle className="h-5 w-5 text-red-400" />
+                        <span className="text-red-300">{error}</span>
+                      </motion.div>
+                    )}
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          type="text"
+                          placeholder="Your Name"
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
+                          required
+                          disabled={isLoading}
+                          className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                      </motion.div>
+                      <motion.div whileFocus={{ scale: 1.02 }}>
+                        <Input
+                          type="text"
+                          placeholder="Company (Optional)"
+                          value={company}
+                          onChange={(e) => setCompany(e.target.value)}
+                          disabled={isLoading}
+                          className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        />
+                      </motion.div>
+                    </div>
+                    <motion.div whileFocus={{ scale: 1.02 }}>
+                      <Input
+                        type="email"
+                        placeholder="Your Email Address"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        disabled={isLoading}
+                        className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                    </motion.div>
+                    <motion.div
+                      whileHover={{ scale: isLoading ? 1 : 1.05 }}
+                      whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                    >
+                      <Button
+                        type="submit"
+                        size="lg"
+                        disabled={isLoading}
+                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-16 text-xl font-semibold shadow-2xl shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 className="mr-3 h-6 w-6 animate-spin" />
+                            Joining Waitlist...
+                          </>
+                        ) : (
+                          <>
+                            <Users className="mr-3 h-6 w-6" />
+                            Join Waitlist - Get Early Access
+                          </>
+                        )}
+                      </Button>
+                    </motion.div>
+                  </form>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8 }}
+              >
+                <Card className="bg-green-900/20 border-green-500/30 p-10 backdrop-blur-sm">
+                  <div className="text-center">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                    >
+                      <CheckCircle className="h-20 w-20 text-green-400 mx-auto mb-6" />
+                    </motion.div>
+                    <h3 className="text-3xl font-semibold text-white mb-4">
+                      You're on the list!
+                    </h3>
+                    <p className="text-green-300 text-xl">
+                      We'll notify you as soon as Story Stream Automation is
+                      ready.
+                    </p>
+                    <div className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-400">
+                      <div className="flex items-center space-x-2">
+                        <Star className="w-4 h-4 text-yellow-500" />
+                        <span>Early access</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <TrendingUp className="w-4 h-4 text-green-500" />
+                        <span>Special pricing</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="w-4 h-4 text-blue-500" />
+                        <span>No spam</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
