@@ -155,6 +155,26 @@ export const OptimizedVideoCarousel: React.FC<OptimizedVideoCarouselProps> = ({
     []
   );
 
+  const navigateModal = useCallback(
+    (direction: "next" | "prev") => {
+      if (!selectedVideo) return;
+
+      const currentModalIndex = videos.findIndex(
+        (v) => v.title === selectedVideo.title
+      );
+      let newIndex;
+
+      if (direction === "next") {
+        newIndex = (currentModalIndex + 1) % videos.length;
+      } else {
+        newIndex = (currentModalIndex - 1 + videos.length) % videos.length;
+      }
+
+      setSelectedVideo(videos[newIndex]);
+    },
+    [selectedVideo, videos]
+  );
+
   const getVideoSize = useCallback(
     (isCenter: boolean) => {
       if (orientation === "vertical") {
@@ -323,61 +343,108 @@ export const OptimizedVideoCarousel: React.FC<OptimizedVideoCarouselProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
             onClick={() => setSelectedVideo(null)}
           >
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              className="relative bg-slate-900 rounded-lg overflow-hidden max-w-6xl max-h-[95vh] w-full"
+              initial={{ scale: 0.8, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.8, opacity: 0, y: 20 }}
+              className={`relative w-full max-w-6xl mx-auto bg-slate-900 rounded-xl overflow-hidden shadow-2xl ${
+                selectedVideo.orientation === "vertical"
+                  ? "max-h-[90vh] flex flex-col"
+                  : "max-h-[85vh] flex flex-col"
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close button */}
               <button
                 onClick={() => setSelectedVideo(null)}
-                className="absolute top-4 right-4 z-10 bg-black/50 hover:bg-black/70 text-white rounded-full p-2 transition-all duration-200"
+                className="absolute top-4 right-4 z-20 bg-black/70 hover:bg-black/90 text-white rounded-full p-2.5 transition-all duration-200 hover:scale-110 backdrop-blur-sm"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
 
-              <div
-                className="relative bg-black flex items-center justify-center"
-                style={{
-                  aspectRatio:
-                    selectedVideo.orientation === "vertical" ? "9/16" : "16/9",
-                  maxHeight: "70vh",
-                }}
-              >
-                <LazyVideo
-                  src={selectedVideo.link}
-                  thumbnail={selectedVideo.thumbnail}
-                  title={selectedVideo.title}
-                  className="w-full h-full modal-video"
-                  autoPlay={true}
-                  controls={true}
-                  loop={true}
-                  muted={false}
+              {/* Video container */}
+              <div className="flex-1 flex items-center justify-center bg-black min-h-0">
+                <div
+                  className={`relative w-full h-full flex items-center justify-center ${
+                    selectedVideo.orientation === "vertical"
+                      ? "max-h-[60vh] max-w-[40vh]"
+                      : "max-h-[55vh] max-w-full"
+                  }`}
                   style={{
-                    objectFit: "contain",
-                    maxWidth: "100%",
-                    maxHeight: "100%",
+                    aspectRatio:
+                      selectedVideo.orientation === "vertical"
+                        ? "9/16"
+                        : "16/9",
                   }}
-                />
+                >
+                  <LazyVideo
+                    src={selectedVideo.link}
+                    thumbnail={selectedVideo.thumbnail}
+                    title={selectedVideo.title}
+                    className="w-full h-full"
+                    autoPlay={true}
+                    controls={true}
+                    loop={true}
+                    muted={false}
+                    style={{
+                      objectFit: "contain",
+                    }}
+                  />
+                </div>
               </div>
 
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-white mb-2">
-                  {selectedVideo.title}
-                </h3>
-                <p className="text-slate-300 mb-4">
-                  {selectedVideo.description}
-                </p>
-                <div className="flex items-center gap-4 text-sm text-slate-400">
-                  <span>{selectedVideo.resolution}</span>
-                  <span>•</span>
-                  <span>{selectedVideo.duration}</span>
-                  <span>•</span>
-                  <span>{selectedVideo.dimension}</span>
+              {/* Title and description with navigation */}
+              <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-800 border-t border-slate-700/50 p-4 md:p-6 flex-shrink-0">
+                <div className="flex items-center justify-between mb-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateModal("prev")}
+                    className="text-slate-300 hover:text-white hover:bg-slate-800 p-2"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+
+                  <div className="text-center flex-1 px-4">
+                    <h3 className="text-lg md:text-xl font-bold text-white line-clamp-2 break-words">
+                      {selectedVideo.title}
+                    </h3>
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigateModal("next")}
+                    className="text-slate-300 hover:text-white hover:bg-slate-800 p-2"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
+
+                <div className="text-center space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap justify-center">
+                    <span className="flex items-center gap-1 bg-slate-800/60 px-3 py-1 rounded-full text-xs text-slate-300 border border-slate-700/50">
+                      {selectedVideo.orientation === "vertical" ? (
+                        <Smartphone className="h-3 w-3" />
+                      ) : (
+                        <Monitor className="h-3 w-3" />
+                      )}
+                      {selectedVideo.resolution}
+                    </span>
+                    <span className="bg-slate-800/60 px-3 py-1 rounded-full text-xs text-slate-300 border border-slate-700/50">
+                      {selectedVideo.duration}
+                    </span>
+                    <span className="bg-slate-800/60 px-3 py-1 rounded-full text-xs text-slate-300 border border-slate-700/50">
+                      {selectedVideo.dimension}
+                    </span>
+                  </div>
+
+                  <p className="text-slate-300 text-sm leading-relaxed line-clamp-4 max-w-4xl mx-auto break-words">
+                    {selectedVideo.description}
+                  </p>
                 </div>
               </div>
             </motion.div>
