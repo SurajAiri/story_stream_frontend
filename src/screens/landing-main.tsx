@@ -32,6 +32,9 @@ import {
   type WaitlistEntry,
 } from "@/services/apis/waitlist_api";
 
+// Import the FAQ section
+import { FAQSection } from "@/components/FAQSection";
+
 // Video data type
 interface VideoData {
   link: string;
@@ -176,6 +179,7 @@ const LandingPage = () => {
   // Refs for smooth scrolling
   const featuresRef = useRef<HTMLElement>(null);
   const videosRef = useRef<HTMLElement>(null);
+  const faqRef = useRef<HTMLElement>(null);
   const waitlistRef = useRef<HTMLElement>(null);
 
   const fullText = "Transform Stories into Viral Videos";
@@ -278,6 +282,12 @@ const LandingPage = () => {
                 className="text-gray-300 hover:text-white transition-colors"
               >
                 Demo
+              </button>
+              <button
+                onClick={() => scrollToSection(faqRef)}
+                className="text-gray-300 hover:text-white transition-colors"
+              >
+                FAQ
               </button>
               <button
                 onClick={() => scrollToSection(waitlistRef)}
@@ -775,6 +785,27 @@ const LandingPage = () => {
                 </Card>
               </motion.div>
             )}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section
+        ref={faqRef}
+        className="py-24 bg-slate-900/50 relative overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5" />
+        <div className="container mx-auto px-4 relative">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <FAQSection
+              onJoinWaitlist={() => scrollToSection(waitlistRef)}
+              onWatchDemo={() => scrollToSection(videosRef)}
+            />
           </motion.div>
         </div>
       </section>
