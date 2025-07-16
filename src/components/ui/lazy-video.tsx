@@ -36,6 +36,7 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
   const [isInView, setIsInView] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [showPlayButton, setShowPlayButton] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -61,23 +62,32 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
     return () => observer.disconnect();
   }, []);
 
+  // Auto-load video when in view and autoPlay is true
+  useEffect(() => {
+    if (isInView && autoPlay && !isLoaded && !isLoading && !hasError) {
+      setIsLoading(true);
+      setShowPlayButton(false);
+    }
+  }, [isInView, autoPlay, isLoaded, isLoading, hasError]);
+
   const loadVideo = () => {
     if (!isLoaded && !isLoading && !hasError) {
       setIsLoading(true);
+      setShowPlayButton(false);
     }
   };
 
   const handleVideoLoad = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setIsLoaded(true);
     setIsLoading(false);
+    setShowPlayButton(false);
 
-    // Auto-play the video immediately when it loads if autoPlay is true
+    const video = e.target as HTMLVideoElement;
+
     if (autoPlay) {
-      const video = e.target as HTMLVideoElement;
       video.muted = muted;
       video.volume = muted ? 0 : 1.0;
 
-      // Attempt to play the video
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise
@@ -89,36 +99,53 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
             }
           })
           .catch((error) => {
-            // Auto-play failed, try with muted first
             console.log("Auto-play failed, trying muted:", error);
             video.muted = true;
-            video.play().then(() => {
-              // If we want unmuted playback, try to unmute after a short delay
-              if (!muted) {
-                setTimeout(() => {
-                  video.muted = false;
-                  video.volume = 1.0;
-                }, 500);
-              }
-            });
+            video
+              .play()
+              .then(() => {
+                if (!muted) {
+                  setTimeout(() => {
+                    video.muted = false;
+                    video.volume = 1.0;
+                  }, 500);
+                }
+              })
+              .catch(() => {
+                // If even muted playback fails, show play button
+                setShowPlayButton(true);
+              });
           });
       }
     }
 
-    // Call the original onLoadedData if provided
     onLoadedData?.(e);
   };
 
   const handleVideoError = () => {
     setHasError(true);
     setIsLoading(false);
+    setShowPlayButton(true);
     onError?.();
   };
 
   const handlePlayClick = () => {
     if (!isLoaded) {
       loadVideo();
+    } else if (videoRef.current) {
+      videoRef.current.play();
+      setShowPlayButton(false);
     }
+  };
+
+  const handleVideoPause = () => {
+    if (!autoPlay) {
+      setShowPlayButton(true);
+    }
+  };
+
+  const handleVideoPlay = () => {
+    setShowPlayButton(false);
   };
 
   return (
@@ -127,39 +154,45 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
       className={`relative overflow-hidden bg-slate-900 ${className}`}
       style={style}
     >
+      {/* Thumbnail */}
       {!isLoaded && !isLoading && !hasError && (
-        <>
-          <img
-            src={thumbnail}
-            alt={title}
-            className="w-full h-full object-contain"
-            loading="lazy"
-            onError={() => setHasError(true)}
-          />
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center group cursor-pointer">
-            <div
-              className="bg-white/90 hover:bg-white rounded-full p-4 transition-all duration-300 group-hover:scale-110"
-              onClick={handlePlayClick}
-            >
-              <Play className="h-8 w-8 text-black ml-1" />
-            </div>
-          </div>
-        </>
+        <img
+          src={thumbnail}
+          alt={title}
+          className="w-full h-full object-contain"
+          loading="lazy"
+          onError={() => setHasError(true)}
+        />
       )}
 
+      {/* Play button overlay */}
+      {showPlayButton && !isLoading && !hasError && (
+        <div className="absolute inset-0 bg-black/30 flex items-center justify-center group cursor-pointer z-10">
+          <div
+            className="bg-white/90 hover:bg-white rounded-full p-4 transition-all duration-300 group-hover:scale-110"
+            onClick={handlePlayClick}
+          >
+            <Play className="h-8 w-8 text-black ml-1" />
+          </div>
+        </div>
+      )}
+
+      {/* Loading state */}
       {isLoading && (
-        <div className="absolute inset-0 bg-slate-900 flex items-center justify-center">
+        <div className="absolute inset-0 bg-slate-900 flex items-center justify-center z-10">
           <Loader2 className="h-8 w-8 text-white animate-spin" />
         </div>
       )}
 
+      {/* Error state */}
       {hasError && (
-        <div className="absolute inset-0 bg-slate-800 flex items-center justify-center">
+        <div className="absolute inset-0 bg-slate-800 flex items-center justify-center z-10">
           <div className="text-white text-center">
             <p className="text-sm opacity-75">Failed to load video</p>
             <button
               onClick={() => {
                 setHasError(false);
+                setShowPlayButton(true);
                 loadVideo();
               }}
               className="mt-2 text-xs text-purple-400 hover:text-purple-300"
@@ -170,6 +203,7 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
         </div>
       )}
 
+      {/* Video element */}
       {isInView && (isLoaded || isLoading) && (
         <video
           ref={videoRef}
@@ -185,6 +219,8 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
           onLoadedMetadata={onLoadedMetadata}
           onVolumeChange={onVolumeChange}
           onError={handleVideoError}
+          onPlay={handleVideoPlay}
+          onPause={handleVideoPause}
           style={{
             display: isLoaded ? "block" : "none",
             objectFit: "contain",
