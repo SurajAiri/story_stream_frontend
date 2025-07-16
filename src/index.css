@@ -3,6 +3,96 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Critical CSS - Above the fold optimizations */
+.critical-above-fold {
+  contain: layout style paint;
+  will-change: transform, opacity;
+}
+
+/* Optimized animations */
+.smooth-transform {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Performance optimizations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.lazy-load {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
+/* Reduce layout shift */
+.aspect-video {
+  aspect-ratio: 16/9;
+}
+
+.aspect-square {
+  aspect-ratio: 1/1;
+}
+
+.aspect-portrait {
+  aspect-ratio: 9/16;
+}
+
+/* Custom responsive breakpoints */
+@media (min-width: 475px) {
+  .xs\:inline {
+    display: inline;
+  }
+  
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+@media (max-width: 474px) {
+  .xs\:inline {
+    display: none;
+  }
+  
+  .xs\:hidden {
+    display: inline;
+  }
+}
+
+/* Custom hover effects */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+.data-\[state\=active\]\:scale-105[data-state="active"] {
+  transform: scale(1.05);
+}
+
+/* Enhanced tab animations */
+.tab-content-enter {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.tab-content-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.3s ease-out;
+}
+
+.tab-content-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.tab-content-exit-active {
+  opacity: 0;
+  transform: translateX(20px);
+  transition: all 0.3s ease-out;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
