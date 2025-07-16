@@ -261,23 +261,25 @@ export const OptimizedVideoCarousel: React.FC<OptimizedVideoCarouselProps> = ({
                           src={video.link}
                           thumbnail={video.thumbnail}
                           title={video.title}
-                          className="w-full h-full"
+                          className="w-full h-full object-contain bg-black"
                           autoPlay={true}
                           controls={true}
                           loop={true}
                           muted={false}
                           onError={() => setPlayingVideo(null)}
+                          style={{ objectFit: "contain" }}
                         />
                       ) : (
                         <LazyVideo
                           src={video.link}
                           thumbnail={video.thumbnail}
                           title={video.title}
-                          className="w-full h-full"
+                          className="w-full h-full object-contain bg-black"
                           autoPlay={false}
                           controls={false}
                           loop={false}
                           muted={true}
+                          style={{ objectFit: "contain" }}
                         />
                       )}
 
@@ -321,14 +323,14 @@ export const OptimizedVideoCarousel: React.FC<OptimizedVideoCarouselProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black/90 flex items-center justify-center z-50 p-4"
             onClick={() => setSelectedVideo(null)}
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              className="relative bg-slate-900 rounded-lg overflow-hidden max-w-4xl max-h-[90vh] w-full"
+              className="relative bg-slate-900 rounded-lg overflow-hidden max-w-6xl max-h-[95vh] w-full"
               onClick={(e) => e.stopPropagation()}
             >
               <button
@@ -338,7 +340,14 @@ export const OptimizedVideoCarousel: React.FC<OptimizedVideoCarouselProps> = ({
                 <X className="h-4 w-4" />
               </button>
 
-              <div className="aspect-video w-full">
+              <div
+                className="relative bg-black flex items-center justify-center"
+                style={{
+                  aspectRatio:
+                    selectedVideo.orientation === "vertical" ? "9/16" : "16/9",
+                  maxHeight: "70vh",
+                }}
+              >
                 <LazyVideo
                   src={selectedVideo.link}
                   thumbnail={selectedVideo.thumbnail}
@@ -348,6 +357,11 @@ export const OptimizedVideoCarousel: React.FC<OptimizedVideoCarouselProps> = ({
                   controls={true}
                   loop={true}
                   muted={false}
+                  style={{
+                    objectFit: "contain",
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                  }}
                 />
               </div>
 

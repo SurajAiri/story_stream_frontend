@@ -67,9 +67,46 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
     }
   };
 
-  const handleVideoLoad = () => {
+  const handleVideoLoad = (e: React.SyntheticEvent<HTMLVideoElement>) => {
     setIsLoaded(true);
     setIsLoading(false);
+
+    // Auto-play the video immediately when it loads if autoPlay is true
+    if (autoPlay) {
+      const video = e.target as HTMLVideoElement;
+      video.muted = muted;
+      video.volume = muted ? 0 : 1.0;
+
+      // Attempt to play the video
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            // Video started playing successfully
+            if (!muted) {
+              video.muted = false;
+              video.volume = 1.0;
+            }
+          })
+          .catch((error) => {
+            // Auto-play failed, try with muted first
+            console.log("Auto-play failed, trying muted:", error);
+            video.muted = true;
+            video.play().then(() => {
+              // If we want unmuted playback, try to unmute after a short delay
+              if (!muted) {
+                setTimeout(() => {
+                  video.muted = false;
+                  video.volume = 1.0;
+                }, 500);
+              }
+            });
+          });
+      }
+    }
+
+    // Call the original onLoadedData if provided
+    onLoadedData?.(e);
   };
 
   const handleVideoError = () => {
@@ -95,7 +132,7 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
           <img
             src={thumbnail}
             alt={title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-contain"
             loading="lazy"
             onError={() => setHasError(true)}
           />
@@ -137,20 +174,21 @@ export const LazyVideo: React.FC<LazyVideoProps> = ({
         <video
           ref={videoRef}
           src={src}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-contain"
           autoPlay={autoPlay}
           controls={controls}
           loop={loop}
           muted={muted}
           preload="metadata"
-          onLoadedData={(e) => {
-            handleVideoLoad();
-            onLoadedData?.(e);
-          }}
+          playsInline
+          onLoadedData={handleVideoLoad}
           onLoadedMetadata={onLoadedMetadata}
           onVolumeChange={onVolumeChange}
           onError={handleVideoError}
-          style={{ display: isLoaded ? "block" : "none" }}
+          style={{
+            display: isLoaded ? "block" : "none",
+            objectFit: "contain",
+          }}
         />
       )}
     </div>
