@@ -170,7 +170,7 @@ const stats = [
 const LandingPage = () => {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
-  const [company, setCompany] = useState("");
+  const [script, setScript] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -209,7 +209,7 @@ const LandingPage = () => {
       const waitlistEntry: WaitlistEntry = {
         name,
         email,
-        ...(company && { extra: company }),
+        ...(script && { extra: script }),
       };
 
       const response = await addToWaitlist(waitlistEntry);
@@ -659,9 +659,9 @@ const LandingPage = () => {
               Join the Waitlist
             </h2>
             <p className="text-2xl text-slate-300 mb-12">
-              Be among the first to{" "}
+              Want to see your words come to life?{" "}
               <span className="text-purple-300 font-semibold">
-                transform your stories into viral videos
+                Try a free sample.
               </span>
             </p>
 
@@ -699,45 +699,108 @@ const LandingPage = () => {
                       </motion.div>
                       <motion.div whileFocus={{ scale: 1.02 }}>
                         <Input
-                          type="text"
-                          placeholder="Company (Optional)"
-                          value={company}
-                          onChange={(e) => setCompany(e.target.value)}
+                          type="email"
+                          placeholder="Your Email Address"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
                           disabled={isLoading}
                           className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
                         />
                       </motion.div>
                     </div>
+
                     <motion.div whileFocus={{ scale: 1.02 }}>
-                      <Input
-                        type="email"
-                        placeholder="Your Email Address"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                        disabled={isLoading}
-                        className="bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 h-14 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      />
+                      <div className="space-y-2">
+                        <textarea
+                          placeholder="Your Script/Story (Optional - 150-600 characters for sample video)"
+                          value={script}
+                          onChange={(e) => setScript(e.target.value)}
+                          disabled={isLoading}
+                          rows={4}
+                          maxLength={600}
+                          className="w-full bg-slate-900/50 border-slate-600 text-white placeholder:text-slate-400 text-lg disabled:opacity-50 disabled:cursor-not-allowed rounded-lg p-4 resize-none border focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                        />
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400">
+                            {script.length >= 150 ? (
+                              <span className="text-green-400">
+                                ✓ Ready for sample video
+                              </span>
+                            ) : script.length > 0 ? (
+                              <span className="text-yellow-400">
+                                Need {150 - script.length} more characters for
+                                sample
+                              </span>
+                            ) : (
+                              <span>
+                                Add your script to get a personalized video demo
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-slate-500">
+                            {script.length}/600
+                          </span>
+                        </div>
+
+                        {script.length >= 150 && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-3 text-xs text-slate-300"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-purple-400">✨</span>
+                              <span>
+                                By providing your script, you agree we may
+                                showcase your video to help others see our
+                                capabilities.
+                                <span className="text-slate-400">
+                                  {" "}
+                                  Your email stays private.
+                                </span>
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </div>
                     </motion.div>
                     <motion.div
                       whileHover={{ scale: isLoading ? 1 : 1.05 }}
                       whileTap={{ scale: isLoading ? 1 : 0.95 }}
+                      className="mt-2"
                     >
                       <Button
                         type="submit"
                         size="lg"
                         disabled={isLoading}
-                        className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white h-16 text-xl font-semibold shadow-2xl shadow-purple-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className={`w-full h-16 text-xl font-semibold shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          script.length >= 150
+                            ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-green-500/25"
+                            : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/25"
+                        }`}
                       >
                         {isLoading ? (
                           <>
                             <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                            Joining Waitlist...
+                            {script.length >= 150
+                              ? "Creating Your Video..."
+                              : "Joining Waitlist..."}
                           </>
                         ) : (
                           <>
-                            <Users className="mr-3 h-6 w-6" />
-                            Join Waitlist - Get Early Access
+                            {script.length >= 150 ? (
+                              <>
+                                <Zap className="mr-3 h-6 w-6" />
+                                Get My Free Video Demo
+                              </>
+                            ) : (
+                              <>
+                                <Users className="mr-3 h-6 w-6" />
+                                Join Waitlist - Get Early Access
+                              </>
+                            )}
                           </>
                         )}
                       </Button>
@@ -763,14 +826,33 @@ const LandingPage = () => {
                     <h3 className="text-3xl font-semibold text-white mb-4">
                       You're on the list!
                     </h3>
-                    <p className="text-green-300 text-xl">
-                      We'll notify you as soon as Story Stream Automation is
-                      ready.
+                    <p className="text-green-300 text-xl mb-6">
+                      {script.length >= 150
+                        ? "We'll create your personalized video demo and send it to your email within 1-2 days."
+                        : "We'll notify you as soon as Story Stream is ready for early access."}
                     </p>
+                    {script.length >= 150 && (
+                      <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
+                        <p className="text-blue-300 text-sm">
+                          <span className="font-semibold">
+                            Processing Note:
+                          </span>{" "}
+                          Our AI system runs locally for security and quality
+                          control. This means processing takes 1-2 days but
+                          ensures your content gets personalized attention. We
+                          appreciate your patience as we're bootstrapping and
+                          don't have funds for cloud hosting yet!
+                        </p>
+                      </div>
+                    )}
                     <div className="mt-8 flex items-center justify-center space-x-8 text-sm text-gray-400">
                       <div className="flex items-center space-x-2">
                         <Star className="w-4 h-4 text-yellow-500" />
-                        <span>Early access</span>
+                        <span>
+                          {script.length >= 150
+                            ? "Free video demo"
+                            : "Early access"}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
                         <TrendingUp className="w-4 h-4 text-green-500" />
