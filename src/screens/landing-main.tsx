@@ -209,7 +209,7 @@ const LandingPage = () => {
       const waitlistEntry: WaitlistEntry = {
         name,
         email,
-        ...(script && { extra: script }),
+        ...(script && { script: script }),
       };
 
       const response = await addToWaitlist(waitlistEntry);
@@ -751,7 +751,7 @@ const LandingPage = () => {
                             className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-3 text-xs text-slate-300"
                           >
                             <div className="flex items-center gap-2">
-                              <span className="text-purple-400">✨</span>
+                              {/* <span className="text-purple-400">✨</span> */}
                               <span>
                                 By providing your script, you agree we may
                                 showcase your video to help others see our
@@ -775,7 +775,7 @@ const LandingPage = () => {
                         type="submit"
                         size="lg"
                         disabled={isLoading}
-                        className={`w-full h-16 text-xl font-semibold shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
+                        className={`w-full h-14 sm:h-16 text-lg sm:text-xl font-semibold shadow-2xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${
                           script.length >= 150
                             ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-green-500/25"
                             : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/25"
@@ -783,22 +783,35 @@ const LandingPage = () => {
                       >
                         {isLoading ? (
                           <>
-                            <Loader2 className="mr-3 h-6 w-6 animate-spin" />
-                            {script.length >= 150
-                              ? "Creating Your Video..."
-                              : "Joining Waitlist..."}
+                            <Loader2 className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                            <span className="hidden sm:inline">
+                              {script.length >= 150
+                                ? "Creating Your Video..."
+                                : "Joining Waitlist..."}
+                            </span>
+                            <span className="sm:hidden">
+                              {script.length >= 150
+                                ? "Creating..."
+                                : "Joining..."}
+                            </span>
                           </>
                         ) : (
                           <>
                             {script.length >= 150 ? (
                               <>
-                                <Zap className="mr-3 h-6 w-6" />
-                                Get My Free Video Demo
+                                <Zap className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+                                <span className="hidden sm:inline">
+                                  Get My Free Video Demo
+                                </span>
+                                <span className="sm:hidden">Get Free Demo</span>
                               </>
                             ) : (
                               <>
-                                <Users className="mr-3 h-6 w-6" />
-                                Join Waitlist - Get Early Access
+                                <Users className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6" />
+                                <span className="hidden sm:inline">
+                                  Join Waitlist - Get Early Access
+                                </span>
+                                <span className="sm:hidden">Join Waitlist</span>
                               </>
                             )}
                           </>
