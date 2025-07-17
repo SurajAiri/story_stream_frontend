@@ -14,7 +14,7 @@ interface FAQItem {
   id: string;
   question: string;
   answer: string;
-  category: "general" | "technical" | "pricing" | "support";
+  category: "general" | "technical" | "pricing" | "support" | "demo";
   icon?: React.ReactNode;
 }
 
@@ -137,6 +137,39 @@ const faqData: FAQItem[] = [
     category: "general",
     icon: <Clock className="h-4 w-4" />,
   },
+  {
+    id: "sample-video-timeline",
+    question: "How long does it take to get my free sample video and why?",
+    answer:
+      "Sample videos typically take 1–2 days to process. We're currently running our AI systems locally as we're still in the testing phase and haven’t yet scaled to full cloud deployment. This allows us to keep development agile, experiment faster, and maintain tight control over quality. While this results in slightly longer turnaround times, it ensures your content is handled securely and thoughtfully. We're bootstrapping for now, and focusing on building something that truly works before scaling up.",
+    category: "demo",
+    icon: <Clock className="h-4 w-4" />,
+  },
+  {
+    id: "privacy-and-content-sharing",
+    question: "What content will be shared and what stays private?",
+    answer:
+      "Your email address and personal details are never shared and remain completely private. However, your final video (with your name/title) may be showcased as a demo to help others see our platform's capabilities. We don't process NSFW, offensive, or inappropriate content - these submissions won't receive a response. You can request to have your video removed from our showcase at any time by emailing us.",
+    category: "demo",
+    icon: <Shield className="h-4 w-4" />,
+  },
+  {
+    id: "video-format-support",
+    question: "Do you support horizontal videos or just vertical?",
+    answer:
+      "Currently, we primarily focus on vertical videos (9:16 aspect ratio) optimized for Instagram Reels, TikTok, and YouTube Shorts. However, we are actively developing horizontal video support (16:9) for YouTube and other platforms. This feature will be available soon after launch.",
+    category: "demo",
+    icon: <HelpCircle className="h-4 w-4" />,
+  },
+  {
+    id: "commercial-rights-credits",
+    question:
+      "Can I use the videos commercially? Do I need to credit Story Stream?",
+    answer:
+      "Yes! You have full commercial rights to use your generated videos for business purposes, marketing, sales, or any commercial application. While not required, we'd appreciate a simple credit mention (like 'Video created with Story Stream') to help others discover our platform. This helps us grow while you grow your business!",
+    category: "demo",
+    icon: <Shield className="h-4 w-4" />,
+  },
 ];
 
 const FAQItem = memo(
@@ -228,6 +261,11 @@ export const FAQSection: React.FC<FAQSectionProps> = memo(
         id: "pricing",
         label: "Pricing",
         count: faqData.filter((f) => f.category === "pricing").length,
+      },
+      {
+        id: "demo",
+        label: "Demo & Samples",
+        count: faqData.filter((f) => f.category === "demo").length,
       },
     ];
 
