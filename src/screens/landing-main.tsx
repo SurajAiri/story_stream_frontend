@@ -267,7 +267,7 @@ const LandingPage = () => {
                 <Sparkles className="w-6 h-6 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                Story Stream
+                Clip Craft
               </span>
             </div>
             <div className="hidden md:flex space-x-8">
@@ -424,7 +424,7 @@ const LandingPage = () => {
             className="text-center mb-20"
           >
             <h2 className="text-5xl md:text-6xl font-bold text-white mb-8">
-              Why Choose Story Stream?
+              Why Choose Clip Craft?
             </h2>
             <p className="text-2xl text-slate-300 max-w-3xl mx-auto">
               Built for creators who demand{" "}
@@ -485,7 +485,7 @@ const LandingPage = () => {
               See It In Action
             </h2>
             <p className="text-lg sm:text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Real videos created with Story Stream Automation -{" "}
+              Real videos created with Clip Craft Automation -{" "}
               <span className="text-purple-300 font-semibold">
                 professional quality in minutes
               </span>
@@ -842,7 +842,7 @@ const LandingPage = () => {
                     <p className="text-green-300 text-xl mb-6">
                       {script.length >= 150
                         ? "We'll create your personalized video demo and send it to your email within 1-2 days."
-                        : "We'll notify you as soon as Story Stream is ready for early access."}
+                        : "We'll notify you as soon as Clip Craft is ready for early access."}
                     </p>
                     {script.length >= 150 && (
                       <div className="bg-blue-900/20 border border-blue-500/30 rounded-lg p-4 mb-6">
@@ -916,9 +916,7 @@ const LandingPage = () => {
           >
             <div className="flex items-center justify-center gap-3 mb-6">
               <Video className="h-10 w-10 text-purple-400" />
-              <span className="text-3xl font-bold text-white">
-                Story Stream
-              </span>
+              <span className="text-3xl font-bold text-white">Clip Craft</span>
             </div>
             <p className="text-slate-400 mb-8 text-lg">
               Transform your stories into viral videos with AI automation

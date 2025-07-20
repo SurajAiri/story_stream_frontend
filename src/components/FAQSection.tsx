@@ -27,9 +27,9 @@ interface FAQSectionProps {
 const faqData: FAQItem[] = [
   {
     id: "what-is-story-stream",
-    question: "What exactly is Story Stream and how does it work?",
+    question: "What exactly is Clip Craft and how does it work?",
     answer:
-      "Story Stream is an AI-powered video creation platform that transforms text-based stories into polished, professional videos. Simply input your story or content, and our AI automatically generates voiceovers, creates relevant visuals, adds animations, and produces a final video ready for social media platforms.",
+      "Clip Craft is an AI-powered video creation platform that transforms text-based stories into polished, professional videos. Simply input your story or content, and our AI automatically generates voiceovers, creates relevant visuals, adds animations, and produces a final video ready for social media platforms.",
     category: "general",
     icon: <Zap className="h-4 w-4" />,
   },
@@ -51,9 +51,9 @@ const faqData: FAQItem[] = [
   },
   {
     id: "content-types",
-    question: "What types of content work best with Story Stream?",
+    question: "What types of content work best with Clip Craft?",
     answer:
-      "Story Stream works excellently with startup stories, business narratives, educational content, product launches, customer testimonials, how-to guides, and any text-based content that can be transformed into engaging video format.",
+      "Clip Craft works excellently with startup stories, business narratives, educational content, product launches, customer testimonials, how-to guides, and any text-based content that can be transformed into engaging video format.",
     category: "general",
     icon: <HelpCircle className="h-4 w-4" />,
   },
@@ -69,7 +69,7 @@ const faqData: FAQItem[] = [
     id: "content-ownership",
     question: "Do I own the rights to my generated videos?",
     answer:
-      "Absolutely! You retain full ownership and commercial rights to all videos created using Story Stream. You can use them across any platform, modify them, or use them for commercial purposes without any restrictions.",
+      "Absolutely! You retain full ownership and commercial rights to all videos created using Clip Craft. You can use them across any platform, modify them, or use them for commercial purposes without any restrictions.",
     category: "general",
     icon: <Shield className="h-4 w-4" />,
   },
@@ -131,9 +131,9 @@ const faqData: FAQItem[] = [
   },
   {
     id: "launch-timeline",
-    question: "When will Story Stream be available?",
+    question: "When will Clip Craft be available?",
     answer:
-      "We are currently in final development and testing phases. Waitlist members will receive early access in the coming weeks, with full public launch planned shortly after. Join our waitlist to be among the first to experience Story Stream.",
+      "We are currently in final development and testing phases. Waitlist members will receive early access in the coming weeks, with full public launch planned shortly after. Join our waitlist to be among the first to experience Clip Craft.",
     category: "general",
     icon: <Clock className="h-4 w-4" />,
   },
@@ -164,9 +164,9 @@ const faqData: FAQItem[] = [
   {
     id: "commercial-rights-credits",
     question:
-      "Can I use the videos commercially? Do I need to credit Story Stream?",
+      "Can I use the videos commercially? Do I need to credit Clip Craft?",
     answer:
-      "Yes! You have full commercial rights to use your generated videos for business purposes, marketing, sales, or any commercial application. While not required, we'd appreciate a simple credit mention (like 'Video created with Story Stream') to help others discover our platform. This helps us grow while you grow your business!",
+      "Yes! You have full commercial rights to use your generated videos for business purposes, marketing, sales, or any commercial application. While not required, we'd appreciate a simple credit mention (like 'Video created with Clip Craft') to help others discover our platform. This helps us grow while you grow your business!",
     category: "demo",
     icon: <Shield className="h-4 w-4" />,
   },
@@ -277,7 +277,7 @@ export const FAQSection: React.FC<FAQSectionProps> = memo(
           </h2>
           <p className="text-slate-400 text-lg max-w-2xl mx-auto">
             Everything you need to know about creating AI-powered videos with
-            Story Stream
+            Clip Craft
           </p>
         </div>
 

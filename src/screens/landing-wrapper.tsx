@@ -34,7 +34,7 @@ const LoadingFallback = () => (
   <div className="min-h-screen bg-slate-900 flex items-center justify-center">
     <div className="text-center">
       <Loader2 className="h-8 w-8 text-purple-400 animate-spin mx-auto mb-4" />
-      <p className="text-slate-400">Loading Story Stream...</p>
+      <p className="text-slate-400">Loading Clip Craft...</p>
     </div>
   </div>
 );

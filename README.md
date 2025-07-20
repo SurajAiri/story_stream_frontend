@@ -1,4 +1,4 @@
-# Story Stream - AI-Powered Video Automation Platform
+# Clip Craft - AI-Powered Video Automation Platform
 
 The first AI platform that automatically converts startup stories into polished Instagram Reels. From script to final video in minutes, not hours.
 
