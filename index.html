@@ -42,6 +42,24 @@
             gtag('config', 'G-X3G0PH7WNZ');
         });
     </script>
+    
+    <!-- Referral tracking script -->
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const utm_source = urlParams.get('utm_source');
+
+        if (utm_source) {
+            localStorage.setItem('referral', utm_source);
+
+            // Optional: send to Google Analytics or another service
+            if (typeof gtag === 'function') {
+                gtag('event', 'referral', {
+                    event_category: 'User',
+                    event_label: utm_source,
+                });
+            }
+        }
+    </script>
   </head>
   <body>
     <div id="root"></div>
