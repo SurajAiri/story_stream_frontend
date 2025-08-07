@@ -27,15 +27,15 @@ const GoogleAuth = () => {
   }, []);
 
   const handleCallbackResponse = async (response: any) => {
-    const idToken = response.credential;
-    console.log("Encoded JWT ID token: " + idToken);
+    const id_token = response.credential;
+    console.log("Encoded JWT ID token: " + id_token);
 
     const res = await fetch("http://localhost:3000/api/v1/auth/google", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ idToken: idToken }),
+      body: JSON.stringify({ id_token: id_token }),
     });
 
     const data = await res.json();
